@@ -1,1 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haustier-Pflege Umfrage</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(120deg, #98FB98, #90EE90);
+            min-height: 100vh;
+        }
 
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .survey-form {
+            margin-bottom: 30px;
+        }
+
+        .radio-group {
+            margin: 20px 0;
+        }
+
+        .radio-option {
+            margin: 10px 0;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .chart-container {
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        h1, h2 {
+            color: #2e7d32;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐾 Welches Haustier ist am pflegeleichtesten? 🐾</h1>
+        
+        <div class="survey-form">
+            <form id="petSurvey">
+                <div class="radio-group">
+                    <h3>Wählen Sie ein Haustier:</h3>
+                    <div class="radio-option">
+                        <input type="radio" id="parrot" name="pet" value="Papagei" required>
+                        <label for="parrot">🦜 Papagei</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="dog" name="pet" value="Hund">
+                        <label for="dog">🐕 Hund</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="cat" name="pet" value="Katze">
+                        <label for="cat">🐱 Katze</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="mouse" name="pet" value="Maus">
+                        <label for="mouse">🐁 Maus</label>
+                    </div>
+                </div>
+
+                <div class="comment-section">
+                    <h3>Ihr Kommentar (optional):</h3>
+                    <textarea id="comment" name="comment" rows="4" placeholder="Warum haben Sie sich für dieses Tier entschieden?"></textarea>
+                </div>
+
+                <button type="submit">Abstimmen</button>
+            </form>
+        </div>
+
+        <div class="results">
+            <h2>Aktuelle Ergebnisse</h2>
+            <div class="chart-container">
+                <canvas id="resultsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('resultsChart').getContext('2d');
+        let resultsChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Papagei', 'Hund', 'Katze', 'Maus'],
+                datasets: [{
+                    data: [0, 0, 0, 0],
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Umfrageergebnisse'
+                    }
+                }
+            }
+        });
+
+        document.getElementById('petSurvey').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = {
+                pet: formData.get('pet'),
+                comment: formData.get('comment'),
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                // Here you would typically send the data to your server
+                // which would then save it to an MS Excel sheet
+                const response = await fetch('https://your-api-endpoint.com/survey', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Vielen Dank für Ihre Teilnahme!');
+                    // Update chart with new data
+                    updateChart();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ein Fehler ist aufgetreten. Bitte versuchen Sie es später erneut.');
+            }
+        });
+
+        // Function to update chart with new data
+        async function updateChart() {
+            try {
+                const response = await fetch('https://your-api-endpoint.com/results');
+                const results = await response.json();
+                
+                resultsChart.data.datasets[0].data = [
+                    results.parrot,
+                    results.dog,
+                    results.cat,
+                    results.mouse
+                ];
+                resultsChart.update();
+            } catch (error) {
+                console.error('Error updating chart:', error);
+            }
+        }
+
+        // Initial chart update
+        updateChart();
+    </script>
+</body>
+</html>
