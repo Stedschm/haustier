@@ -153,5 +153,43 @@
             e.target.reset();
         });
     </script>
+    <script>
+        document.getElementById('petSurvey').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const selectedPet = formData.get('pet');
+            const comment = formData.get('comment');
+            
+            // Prepare data for Google Sheets
+            const data = {
+                timestamp: new Date().toISOString(),
+                pet: selectedPet,
+                comment: comment
+            };
+    
+            // Update local chart
+            votes[selectedPet]++;
+            chart.data.datasets[0].data = Object.values(votes);
+            chart.update();
+    
+            // Send to Google Sheets
+            fetch('https://script.google.com/macros/s/AKfycbxuovxskRTZLJpXhLLIzfM6MNX8zp6nSWkxzxSl5qHxeBe9XM0A-pwuKBw-DtMNaepwBQ/exec', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(() => {
+                alert('Vielen Dank für Ihre Teilnahme! Die Daten wurden gespeichert.');
+                e.target.reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Es gab einen Fehler beim Speichern der Daten.');
+            });
+        });
+    </script>
 </body>
 </html>
